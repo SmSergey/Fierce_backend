@@ -26,5 +26,5 @@ public class User {
 
     private Boolean isActivated = false;
 
-    private String confirmCode;
+    private String verificationCode;
 }

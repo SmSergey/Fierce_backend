@@ -1,0 +1,7 @@
+support:
+  config.supportEmail: sendcode123@gmail.com
+  config.password: ljrpjvkisoxjtvav
+  config.host : smtp.gmail.com
+  config.smtpPort: 465
+  config.sslEnable: true
+  config.authEnable: true
