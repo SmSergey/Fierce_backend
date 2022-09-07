@@ -1,6 +1,5 @@
 package com.app.fierce_backend.domain.user;
 
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,6 +15,7 @@ public class User {
     @GeneratedValue
     private Long id;
 
+    @Column(unique = true)
     private String email;
 
     private String firstName;

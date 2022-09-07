@@ -11,6 +11,8 @@ public class ConfirmCodeGenerator {
         byte[] array = new byte[20];
         new Random().nextBytes(array);
 
-        return new String(Base64.getEncoder().encode(array), StandardCharsets.UTF_8);
+        return new String(Base64.getEncoder().encode(array), StandardCharsets.UTF_8)
+                .replaceAll("[/+= ]", "");
     }
+
 }

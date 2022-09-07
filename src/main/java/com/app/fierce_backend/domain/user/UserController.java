@@ -3,23 +3,28 @@ package com.app.fierce_backend.domain.user;
 import com.app.fierce_backend.common.ApiResponse;
 import com.app.fierce_backend.domain.user.dto.LoginRequest;
 import com.app.fierce_backend.domain.user.dto.RegisterAccountRequest;
+import com.app.fierce_backend.domain.user.dto.UpdateAccountInfoRequest;
 import com.app.fierce_backend.domain.user.interfaces.SuccessMessages;
 import com.app.fierce_backend.domain.user.interfaces.UserRepository;
 import com.app.fierce_backend.helpers.ConfirmCodeGenerator;
 import com.app.fierce_backend.helpers.mail.EmailSenderService;
 import com.app.fierce_backend.helpers.portal.PortalConfig;
 import com.app.fierce_backend.security.jwt.JwtTokenRepository;
+import com.app.fierce_backend.security.jwt.JwtTokenRepository.Tokens;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityNotFoundException;
+import javax.validation.ValidationException;
 
 @RestController
 @RequiredArgsConstructor
@@ -31,11 +36,22 @@ public class UserController {
     private final UserRepository userRepository;
     private final JwtTokenRepository jwtTokenRepository;
     private final PortalConfig portalConfig;
+    private final AuthenticationManager authenticationManager;
 
     @PostMapping(path = "auth/login")
     public ResponseEntity<String> login(@Validated LoginRequest loginRequest) {
 
-        val tokens = jwtTokenRepository.generateTokens("");
+        val auth = new UsernamePasswordAuthenticationToken(
+                loginRequest.getEmail(),
+                loginRequest.getPassword()
+        );
+
+        authenticationManager.authenticate(auth);
+
+        User user = userRepository.findUserByEmail(loginRequest.getEmail())
+                .orElseThrow(() -> new UsernameNotFoundException(loginRequest.getEmail()));
+
+        val tokens = jwtTokenRepository.generateTokens(String.valueOf(user.getId()));
 
         return new ApiResponse()
                 .addField("accessToken", tokens.getAccessToken())
@@ -62,6 +78,29 @@ public class UserController {
                 .setMessage(SuccessMessages.CONFIRM_MESSAGE_SENT).build();
     }
 
+    @PatchMapping("/auth/register")
+    public ResponseEntity<String> updateAccountInfo(@Validated @RequestBody UpdateAccountInfoRequest request) {
+        User user = userRepository.findUserByEmail(request.getEmail())
+                .orElseThrow(() -> new EntityNotFoundException(String.format("User with this email %s doesn't exists", request.getEmail())));
+
+        if (user.getVerificationCode() == null) throw new ValidationException("account already created");
+        if (!user.getVerificationCode().equals(request.getVerificationCode()) && user.getVerificationCode() != null) {
+            throw new ValidationException("Wrong verification code");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setFirstName(request.getFirstName());
+        user.setLastName(request.getLastName());
+        user.setVerificationCode(null);
+        user.setIsActivated(true);
+
+        userRepository.save(user);
+
+        return new ApiResponse()
+                .setStatus(200)
+                .setMessage("Account activated").build();
+    }
+
     @GetMapping(path = "/users/{verification_code}")
     public RedirectView activateUser(@PathVariable("verification_code") String verificationCode) {
         System.out.println("verification code is - " + verificationCode);
@@ -70,11 +109,16 @@ public class UserController {
                 .orElseThrow(() -> new EntityNotFoundException(String.format("Code %s is not correct", verificationCode)));
 
         user.setIsActivated(true);
-        user.setVerificationCode(null);
 
         userRepository.save(user);
+        System.out.println("code is " + user.getVerificationCode());
 
-        return new RedirectView(String.format("http://%s:%s/login/registration", portalConfig.getAddress(), portalConfig.getPort()));
+        return new RedirectView(String.format("http://%s:%s/login/registration?email=%s&code=%s",
+                portalConfig.getAddress(),
+                portalConfig.getPort(),
+                user.getEmail(),
+                user.getVerificationCode()
+        ));
     }
 
     @PostConstruct

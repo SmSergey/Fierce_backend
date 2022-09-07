@@ -9,7 +9,7 @@ import javax.annotation.PostConstruct;
 @Service
 public class UserService {
 
-    @Value("${server.address}")
+    @Value("${address}")
     private String serverAddress;
 
     @Value("${server.servlet.context-path}")

@@ -7,11 +7,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import javax.persistence.EntityNotFoundException;
+import javax.validation.ValidationException;
 
 @ControllerAdvice
 public class GlobalAdvice {
@@ -33,6 +35,15 @@ public class GlobalAdvice {
         return new ApiResponse()
                 .setStatus(HttpStatus.NOT_FOUND.value())
                 .setMessage(ErrorMessages.NOT_FOUND).build();
+    }
+
+
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<String> handleError(ValidationException err) {
+        logger.error(err.getMessage());
+        return new ApiResponse()
+                .setStatus(HttpStatus.BAD_REQUEST.value())
+                .setMessage(err.getMessage()).build();
     }
 
     @ExceptionHandler(Exception.class)
