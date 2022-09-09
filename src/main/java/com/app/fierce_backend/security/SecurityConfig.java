@@ -38,6 +38,7 @@ public class SecurityConfig {
                 .cors().and()
                 .csrf().disable()
                 .authorizeRequests().antMatchers("/auth/**").permitAll().and()
+                .authorizeRequests().antMatchers("/**").permitAll().and()
                 .addFilterBefore(filtersFactory.getJwtFilter(), AnonymousAuthenticationFilter.class)
                 .build();
     }

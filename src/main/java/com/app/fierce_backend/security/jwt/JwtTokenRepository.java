@@ -97,7 +97,7 @@ public class JwtTokenRepository {
 
     public String fetchTokenFromRequest(HttpServletRequest request) {
         try {
-            return request.getHeader("accesstoken");
+            return request.getHeader("Authorize");
         } catch (Exception err) {
             logger.error("couldn't get token, err - " + err.getMessage());
         }

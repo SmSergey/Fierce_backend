@@ -1,0 +1,2 @@
+ALTER TABLE chats
+    ADD name VARCHAR(255);

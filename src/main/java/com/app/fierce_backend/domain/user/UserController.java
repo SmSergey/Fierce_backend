@@ -1,18 +1,23 @@
 package com.app.fierce_backend.domain.user;
 
 import com.app.fierce_backend.common.ApiResponse;
+import com.app.fierce_backend.domain.chat.interfaces.ChatsDto;
 import com.app.fierce_backend.domain.user.dto.LoginRequest;
 import com.app.fierce_backend.domain.user.dto.RegisterAccountRequest;
 import com.app.fierce_backend.domain.user.dto.UpdateAccountInfoRequest;
 import com.app.fierce_backend.domain.user.interfaces.SuccessMessages;
+import com.app.fierce_backend.domain.user.interfaces.UserDto;
 import com.app.fierce_backend.domain.user.interfaces.UserRepository;
 import com.app.fierce_backend.helpers.ConfirmCodeGenerator;
 import com.app.fierce_backend.helpers.mail.EmailSenderService;
 import com.app.fierce_backend.helpers.portal.PortalConfig;
 import com.app.fierce_backend.security.jwt.JwtTokenRepository;
 import com.app.fierce_backend.security.jwt.JwtTokenRepository.Tokens;
+import com.app.fierce_backend.security.services.SecurityService;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
+import org.springframework.data.projection.ProjectionFactory;
+import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -37,9 +42,11 @@ public class UserController {
     private final JwtTokenRepository jwtTokenRepository;
     private final PortalConfig portalConfig;
     private final AuthenticationManager authenticationManager;
+    private final ProjectionFactory projectionFactory = new SpelAwareProxyProjectionFactory();
+
 
     @PostMapping(path = "auth/login")
-    public ResponseEntity<String> login(@Validated LoginRequest loginRequest) {
+    public ResponseEntity<String> login(@Validated @RequestBody LoginRequest loginRequest) {
 
         val auth = new UsernamePasswordAuthenticationToken(
                 loginRequest.getEmail(),
@@ -103,14 +110,12 @@ public class UserController {
 
     @GetMapping(path = "/users/{verification_code}")
     public RedirectView activateUser(@PathVariable("verification_code") String verificationCode) {
-        System.out.println("verification code is - " + verificationCode);
-
         User user = userRepository.findUserByVerificationCode(verificationCode)
                 .orElseThrow(() -> new EntityNotFoundException(String.format("Code %s is not correct", verificationCode)));
 
         user.setIsActivated(true);
-
         userRepository.save(user);
+
         System.out.println("code is " + user.getVerificationCode());
 
         return new RedirectView(String.format("http://%s:%s/login/registration?email=%s&code=%s",
@@ -119,6 +124,15 @@ public class UserController {
                 user.getEmail(),
                 user.getVerificationCode()
         ));
+    }
+
+    @GetMapping("/me")
+    public UserDto getMe() {
+        User user = userRepository.findById(
+                Long.valueOf(SecurityService.getCurrentUserId())
+        ).orElseThrow(() -> new EntityNotFoundException("user wasn't found "));
+
+        return projectionFactory.createProjection(UserDto.class, user);
     }
 
     @PostConstruct
