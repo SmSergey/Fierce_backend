@@ -1,6 +1,7 @@
 package com.app.fierce_backend.domain.chat;
 
 import com.app.fierce_backend.common.ApiResponse;
+import com.app.fierce_backend.domain.chat.dto.AttachUserToChatRequest;
 import com.app.fierce_backend.domain.chat.interfaces.ChatsDto;
 import com.app.fierce_backend.domain.chat.dto.CreateChatRequest;
 import lombok.RequiredArgsConstructor;
@@ -9,10 +10,7 @@ import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -38,5 +36,13 @@ public class ChatController {
                 .setStatus(HttpStatus.CREATED.value())
                 .setMessage("created")
                 .addField("chat_id", createdChat.getId()).build();
+    }
+
+    @PostMapping("/chats/attach")
+    public ResponseEntity<String> attachUserToChat(@RequestBody @Validated AttachUserToChatRequest request) {
+        chatService.attachUserToChat(request.getUserId(), request.getChatId());
+        return new ApiResponse()
+                .setStatus(200)
+                .setMessage("Added").build();
     }
 }

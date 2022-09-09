@@ -11,6 +11,7 @@ import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
+import javax.swing.text.html.Option;
 import javax.transaction.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -50,5 +51,18 @@ public class ChatService {
                 .orElseThrow(() -> new EntityNotFoundException(String.format("chat with id %s wasn't found", chatId)));
 
         return Optional.ofNullable(chat.getMessages()).orElseGet(ArrayList::new);
+    }
+
+
+    public void attachUserToChat(String userId, UUID chatId) {
+        Chat chat = chatRepository.findById(chatId)
+                .orElseThrow(() -> new EntityNotFoundException(String.format("Chat with id %s wasn't found ", chatId)));
+        User user = userRepository.findById(Long.valueOf(userId))
+                .orElseThrow(() -> new EntityNotFoundException(String.format("User with id %s wasn't found", userId)));
+
+        Optional.ofNullable(chat.getUsers()).orElseGet(ArrayList::new)
+                .add(user);
+
+        chatRepository.save(chat);
     }
 }

@@ -38,7 +38,10 @@ public class SecurityConfig {
                 .cors().and()
                 .csrf().disable()
                 .authorizeRequests().antMatchers("/auth/**").permitAll().and()
-                .authorizeRequests().antMatchers("/**").permitAll().and()
+                .authorizeRequests().antMatchers("/me").authenticated().and()
+                .authorizeRequests().antMatchers("/users/**").authenticated().and()
+                .authorizeRequests().antMatchers("/chats/**").authenticated().and()
+                .authorizeRequests().antMatchers("/messages/**").authenticated().and()
                 .addFilterBefore(filtersFactory.getJwtFilter(), AnonymousAuthenticationFilter.class)
                 .build();
     }
