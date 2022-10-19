@@ -7,9 +7,6 @@ CREATE TABLE chats_messages
 ALTER TABLE chats_messages
     ADD CONSTRAINT uc_chats_messages_messages UNIQUE (messages_id);
 
-ALTER TABLE chats_users
-    ADD CONSTRAINT uc_chats_users_users UNIQUE (users_id);
-
 ALTER TABLE chats_messages
     ADD CONSTRAINT fk_chames_on_chat FOREIGN KEY (chat_id) REFERENCES chats (id);
 
