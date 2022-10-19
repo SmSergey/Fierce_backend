@@ -33,5 +33,6 @@ public class FierceBackendApplication implements CommandLineRunner {
     @Transactional
     public void run(String... args) throws Exception {
         System.out.println("test");
+        System.out.println("test");
     }
 }
