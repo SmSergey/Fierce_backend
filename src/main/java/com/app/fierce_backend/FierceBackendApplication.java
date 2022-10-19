@@ -34,5 +34,6 @@ public class FierceBackendApplication implements CommandLineRunner {
     public void run(String... args) throws Exception {
         System.out.println("test");
         System.out.println("test");
+        System.out.println("test");
     }
 }
