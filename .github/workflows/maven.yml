@@ -30,7 +30,7 @@ jobs:
       with:
         image: repo/fierce_back_prod
         tags: latest
-        registry: registry-url.io
+        registry: registry.io
         dockerfile: Dockerfile
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
