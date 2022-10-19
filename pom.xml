@@ -173,6 +173,6 @@
                 </configuration>
             </plugin>
         </plugins>
+        <finalName>fierce_back_prod</finalName>
     </build>
-
 </project>

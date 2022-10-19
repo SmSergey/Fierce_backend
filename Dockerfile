@@ -1,3 +1,4 @@
-FROM openjdk:18
-ADD /target/Fierce_backend-0.0.1-SNAPSHOT.jar backend.jar
-ENTRYPOINT ["java", "-jar", "backend.jar"]
+FROM openjdk:17
+EXPOSE 8080
+ADD /target/fierce_back_prod.jar fierce_back_prod.jar
+ENTRYPOINT ["java" , "-jar", "fierce_back_prod.jar"]
